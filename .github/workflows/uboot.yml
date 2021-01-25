@@ -46,7 +46,7 @@ jobs:
       id: toolchains
       if: steps.environment.outputs.status == 'success' && !cancelled()
       run: |
-        sudo apt-get install -y gcc-5-arm-linux-gnueabihf >> /dev/null 2>&1
+        sudo apt-get install -y gcc-5-arm-linux-gnueabihf g++-5-arm-linux-gnueabihf >> /dev/null 2>&1
         arm-linux-gnueabihf-gcc --version
         echo "::set-output name=status::success"
 
@@ -103,7 +103,7 @@ jobs:
 
     - name: Generate release tag
       id: tag
-      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
         echo "::set-output name=release_tag::${{ steps.organize.outputs.bdate }}"
         touch release.txt
