@@ -493,6 +493,16 @@ static int should_load_env(void)
 
 static int initr_env(void)
 {
+#if CONFIG_ENV_AUTO_SET
+/* add by cym 20180816 */
+/* update by zacharyli 2021.01.18 */
+	char *p = NULL;
+	char bootargs[300] = {0};
+	char displayArgs[300] = {0};
+
+	char lcd_flags = 0;
+#endif /* end add */
+
 	/* initialize environment */
 	if (should_load_env())
 		env_relocate();
@@ -522,6 +532,120 @@ static int initr_env(void)
 #endif /* CONFIG_I2CFAST */
 #endif /* CONFIG_405GP, CONFIG_405EP */
 #endif /* CONFIG_SYS_EXTBDINFO */
+
+#if CONFIG_ENV_AUTO_SET
+/* add by cym 20180816 */
+/* update by zacharyli 2021.01.18 */
+	p = getenv("lcdtype");
+
+	if (NULL == p) {
+		printf("*** Warning use default panel:%s ***\n", CONFIG_DISPLAY_LCD_TYPE);
+		p = CONFIG_DISPLAY_LCD_TYPE;
+		setenv("lcdtype", (char *)p);
+		saveenv();
+	}
+	printf("LCD type:%s\n", p);
+
+	/* strcmp(str1,str2)，若str1=str2，则返回零；若str1<str2，则返回负数；若str1>str2，则返回正数 */
+	if(!strcmp(p, "9.7"))
+	{
+		lcd_flags = 0;
+		sprintf(displayArgs, "video=mxcfb0:dev=ldb,VGA_1024768 video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off");
+	}
+	else if(!strcmp(p, "7.0"))
+	{
+		lcd_flags = 1;
+		sprintf(displayArgs, "video=mxcfb0:dev=ldb,VGA_8001280 video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off");
+	}
+	else if(!strcmp(p, "10.1"))
+	{
+		lcd_flags = 2;
+		sprintf(displayArgs, "video=mxcfb0:dev=ldb,VGA_1024600 video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off");
+	}
+	else if(!strcmp(p, "1024x600"))
+	{
+		sprintf(displayArgs, "video=mxcfb0:dev=lcd,VGA_1024600,if=RGB24,bpp=32 video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off");
+	}
+	else if(!strcmp(p, "5.0"))
+	{
+		sprintf(displayArgs, "video=mxcfb0:dev=lcd,VGA_800480,if=RGB24,bpp=32 video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off");
+	}
+	else if(!strcmp(p, "4.3"))
+	{
+		sprintf(displayArgs, "video=mxcfb0:dev=lcd,VGA_480272,if=RGB24,bpp=32 video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off");
+	}
+	else if(!strcmp(p, "vga"))
+	{
+		sprintf(displayArgs, "video=mxcfb0:dev=lcd,VGA_1280800,if=RGB24,bpp=32 video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off");
+	}
+	else if(!strcmp(p, "hdmi"))
+	{
+		sprintf(displayArgs, "video=mxcfb0:dev=hdmi,1920x1080M@60,bpp=32 video=mxcfb1:off video=mxcfb2:off video=mxcfb3:off");
+	}
+
+	p = getenv("bootsystem");
+	if (NULL == p) {
+		printf("*** Warning use default system:%s ***\n", CONFIG_BOOT_SYSTEM);
+		p = CONFIG_BOOT_SYSTEM;//"android";
+		setenv("bootsystem", (char *)p);
+		saveenv();
+	}
+	printf("bootsystem:%s\n", p);
+
+	if(!strcmp(p, "android"))
+	{
+		sprintf(bootargs, "console=ttymxc0,115200 androidboot.console=ttymxc0 consoleblank=0 vmalloc=256M init=/init %s androidboot.hardware=freescale cma=384M", displayArgs);
+
+		//setenv("bootcmd", "fatload mmc 2:1 0x12000000 boot.img;boota 0x12000000");
+		if(0 == lcd_flags)//9.7 inch
+		{
+			setenv("bootcmd", "fatload mmc 2:1 0x12000000 boot-topeet_9.7.img;boota 0x12000000");
+		}
+		else if(1 == lcd_flags)//7 inch
+		{
+			setenv("bootcmd", "fatload mmc 2:1 0x12000000 boot-topeet_7.img;boota 0x12000000");
+		}
+		else if(2 == lcd_flags)//10.1 inch
+		{
+			setenv("bootcmd", "fatload mmc 2:1 0x12000000 boot-topeet_10.1.img;boota 0x12000000");
+		}
+		else
+		{
+			setenv("bootcmd", "fatload mmc 2:1 0x12000000 boot-topeet_9.7.img;boota 0x12000000");
+		}
+	}
+	else if((!strcmp(p, "qt")) || (!strcmp(p, "ubuntu")))
+	{
+		sprintf(bootargs, "console=ttymxc0,115200 androidboot.console=ttymxc0 consoleblank=0 vmalloc=256M %s root=/dev/mmcblk3p2 rootwait rw", displayArgs);
+
+		if(0 == lcd_flags)//9.7 inch
+		{
+			setenv("bootcmd", "fatload mmc 2:1 0x12000000 topeet_9.7inch.dtb;fatload mmc 2:1 0x13000000 zImage;bootz 0x13000000 - 0x12000000");
+		}
+		else if(1 == lcd_flags)//7 inch
+		{
+			setenv("bootcmd", "fatload mmc 2:1 0x12000000 topeet_7inch.dtb;fatload mmc 2:1 0x13000000 zImage;bootz 0x13000000 - 0x12000000");
+		}
+		else if(2 == lcd_flags)//10.1 inch
+		{
+			setenv("bootcmd", "fatload mmc 2:1 0x12000000 topeet_10.1inch.dtb;fatload mmc 2:1 0x13000000 zImage;bootz 0x13000000 - 0x12000000");
+		}
+		else
+		{
+			setenv("bootcmd", "fatload mmc 2:1 0x12000000 topeet_9.7inch.dtb;fatload mmc 2:1 0x13000000 zImage;bootz 0x13000000 - 0x12000000");
+		}
+	}
+	else if(!strcmp(p, "sd-burn"))
+	{
+		sprintf(bootargs, "console=ttymxc0,115200 androidboot.console=ttymxc0 consoleblank=0 vmalloc=256M %s root=/dev/mmcblk1p2 rootwait rw", displayArgs);
+		setenv("bootcmd", "fatload mmc 1:1 0x12000000 imx6q-sabresd.dtb;fatload mmc 1:1 0x13000000 zImage;bootz 0x13000000 - 0x12000000");
+	}
+
+	setenv("bootargs", bootargs);
+	//printf("bootargs=%s\n", bootargs);
+
+#endif /* end add */
+
 	return 0;
 }
 
