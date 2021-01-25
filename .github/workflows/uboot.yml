@@ -13,6 +13,9 @@ env:
   UPLOAD_COWTRANSFER: false
   UPLOAD_WETRANSFER: false
   UPLOAD_RELEASE: true
+  TOOLS_URL: https://raw.githubusercontent.com/franticode/toolchains/master
+  TOOLS_NAME: gcc-linaro-5.4.1-2017.05-x86_64_arm-linux-gnueabihf
+  TOOLS_TAIL: tar.xz
 
 jobs:
   build_uboot:
@@ -46,7 +49,14 @@ jobs:
       id: toolchains
       if: steps.environment.outputs.status == 'success' && !cancelled()
       run: |
-        sudo apt-get install -y gcc-5-arm-linux-gnueabihf g++-5-arm-linux-gnueabihf >> /dev/null 2>&1
+        sudo mkdir -p /opt/toolchains
+        sudo chown $USER:$GROUPS /opt/toolchains -R
+        wget -P /opt/toolchains $TOOLS_URL/$TOOLS_NAME.$TOOLS_TAIL.aa >> /dev/null 2>&1
+        wget -P /opt/toolchains $TOOLS_URL/$TOOLS_NAME.$TOOLS_TAIL.ab >> /dev/null 2>&1
+        cd /opt/toolchains
+        cat $TOOLS_NAME.$TOOLS_TAIL.* > $TOOLS_NAME.$TOOLS_TAIL
+        tar -xJvf $TOOLS_NAME.$TOOLS_TAIL >> /dev/null 2>&1
+        export PATH=$PATH:/opt/toolchains/$TOOLS_NAME/bin
         arm-linux-gnueabihf-gcc --version
         echo "::set-output name=status::success"
 
@@ -54,6 +64,9 @@ jobs:
       id: clean
       if: steps.toolchains.outputs.status == 'success' && !cancelled()
       run: |
+        export PATH=$PATH:/opt/toolchains/$TOOLS_NAME/bin
+        export ARCH=arm
+        export CROSS_COMPILE=arm-linux-gnueabihf-
         make clean && make distclean
         echo "::set-output name=status::success"
 
@@ -61,6 +74,9 @@ jobs:
       id: compile
       if: steps.clean.outputs.status == 'success' && !cancelled()
       run: |
+        export PATH=$PATH:/opt/toolchains/$TOOLS_NAME/bin
+        export ARCH=arm
+        export CROSS_COMPILE=arm-linux-gnueabihf-
         make mx6qsabresd_defconfig
         make -j6 -s
         echo "::set-output name=status::success"
@@ -77,6 +93,9 @@ jobs:
         build_date=$(date +"%Y.%m.%d-%H%M")
         tar -cjvf u-boot-$(build_date).tar.bz2 uboot_dir
         rm uboot_dir -rf
+        export PATH=$PATH:/opt/toolchains/$TOOLS_NAME/bin
+        export ARCH=arm
+        export CROSS_COMPILE=arm-linux-gnueabihf-
         make clean && make distclean
         echo "FILE_DATE=$(build_date)" >> $GITHUB_ENV
         echo "FIRMWARE=u-boot-$(build_date).tar.bz2" >> $GITHUB_ENV
