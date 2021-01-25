@@ -79,6 +79,7 @@ jobs:
         export CROSS_COMPILE=arm-linux-gnueabihf-
         make mx6qsabresd_defconfig
         make -j6 -s
+        echo "::set-output name=bdate::$(date +"%Y.%m.%d")"
         echo "::set-output name=status::success"
 
     - name: Organize files
@@ -90,15 +91,14 @@ jobs:
         cp u-boot.imx uboot_dir/u-boot.imx
         md5sum uboot_dir/u-boot.bin > uboot_dir/u-boot.bin.md5
         md5sum uboot_dir/u-boot.imx > uboot_dir/u-boot.imx.md5
-        echo "::set-output name=bdate::$(date +"%Y.%m.%d-%H%M")"
-        tar -cjvf u-boot-${{ steps.organize.outputs.bdate }}.tar.bz2 uboot_dir
+        tar -cjvf u-boot-${{ steps.compile.outputs.bdate }}.tar.bz2 uboot_dir
         rm uboot_dir -rf
         export PATH=$PATH:/opt/toolchains/$TOOLS_NAME/bin
         export ARCH=arm
         export CROSS_COMPILE=arm-linux-gnueabihf-
         make clean && make distclean
-        echo "FILE_DATE=${{ steps.organize.outputs.bdate }}" >> $GITHUB_ENV
-        echo "FIRMWARE=u-boot-${{ steps.organize.outputs.bdate }}.tar.bz2" >> $GITHUB_ENV
+        echo "FILE_DATE=${{ steps.compile.outputs.bdate }}" >> $GITHUB_ENV
+        echo "FIRMWARE=u-boot-${{ steps.compile.outputs.bdate }}.tar.bz2" >> $GITHUB_ENV
         echo "::set-output name=status::success"
 
     - name: Upload firmware to cowtransfer
@@ -123,7 +123,7 @@ jobs:
       id: tag
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "::set-output name=release_tag::${{ steps.organize.outputs.bdate }}"
+        echo "::set-output name=release_tag::${{ steps.compile.outputs.bdate }}"
         touch release.txt
         [ $UPLOAD_COWTRANSFER = true ] && echo "🔗 [Cowtransfer](${{ steps.cowtransfer.outputs.url }})" >> release.txt
         [ $UPLOAD_WETRANSFER = true ] && echo "🔗 [WeTransfer](${{ steps.wetransfer.outputs.url }})" >> release.txt
