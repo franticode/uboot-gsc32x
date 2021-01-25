@@ -1,4 +1,4 @@
-name: C/C++ CI
+name: u-boot CI
 
 on:
   push:
@@ -6,11 +6,132 @@ on:
   pull_request:
     branches: [ master ]
 
-jobs:
-  build:
+env:
+  TZ: Asia/Shanghai
+  UPLOAD_BIN_DIR: false
+  UPLOAD_FIRMWARE: true
+  UPLOAD_COWTRANSFER: false
+  UPLOAD_WETRANSFER: false
+  UPLOAD_RELEASE: true
 
+jobs:
+  build_uboot:
+    name: build u-boot
     runs-on: ubuntu-18.04
 
     steps:
-    - uses: actions/checkout@v2
-    - name: configure
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Initialization Environment
+      id: environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        echo "set timezone"
+        sudo timedatectl set-timezone "$TZ"
+        echo "remove useless packages"
+        sudo apt-get purge -y azure-cli ghc* zulu* hhvm llvm* firefox google* >> /dev/null 2>&1
+        sudo apt-get purge -y dotnet* powershell openjdk* mysql* php* android* >> /dev/null 2>&1
+        sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php >> /dev/null 2>&1
+        sudo apt-get autoremove -y  >> /dev/null 2>&1
+        echo "get update and install basic tools"
+        sudo rm -rf /etc/apt/sources.list.d >> /dev/null 2>&1
+        sudo apt-get update >> /dev/null 2>&1
+        sudo apt-get install -y git wget coreutils make gcc gcc-multilib build-essential >> /dev/null 2>&1
+        sudo apt-get install -y autoconf automake u-boot-tools libsdl1.2-dev libncurses5-dev >> /dev/null 2>&1
+        echo "::set-output name=status::success"
+
+    - name: Download Toolchains
+      id: toolchains
+      if: steps.environment.outputs.status == 'success' && !cancelled()
+      run: |
+        sudo apt-get install -y gcc-5-arm-linux-gnueabihf >> /dev/null 2>&1
+        arm-linux-gnueabihf-gcc --version
+        echo "::set-output name=status::success"
+
+    - name: Make Clean/Distclean
+      id: clean
+      if: steps.toolchains.outputs.status == 'success' && !cancelled()
+      run: |
+        make clean && make distclean
+        echo "::set-output name=status::success"
+
+    - name: Compile the firmware
+      id: compile
+      if: steps.clean.outputs.status == 'success' && !cancelled()
+      run: |
+        make mx6qsabresd_defconfig
+        make -j6 -s
+        echo "::set-output name=status::success"
+
+    - name: Organize files
+      id: organize
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      run: |
+        mkdir -p uboot_dir
+        cp u-boot.bin uboot_dir/u-boot.bin
+        cp u-boot.imx uboot_dir/u-boot.imx
+        md5sum uboot_dir/u-boot.bin > uboot_dir/u-boot.bin.md5
+        md5sum uboot_dir/u-boot.imx > uboot_dir/u-boot.imx.md5
+        build_date=$(date +"%Y.%m.%d-%H%M")
+        tar -cjvf u-boot-$(build_date).tar.bz2 uboot_dir
+        rm uboot_dir -rf
+        make clean && make distclean
+        echo "FILE_DATE=$(build_date)" >> $GITHUB_ENV
+        echo "FIRMWARE=u-boot-$(build_date).tar.bz2" >> $GITHUB_ENV
+        echo "::set-output name=bdate::$(build_date)"
+        echo "::set-output name=status::success"
+
+    - name: Upload firmware to cowtransfer
+      id: cowtransfer
+      if: steps.organize.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
+      run: |
+        curl -fsSL git.io/file-transfer | sh
+        ./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE} 2>&1 | tee cowtransfer.log
+        echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
+        echo "::set-output name=url::$(cat cowtransfer.log | grep https | cut -f3 -d" ")"
+
+    - name: Upload firmware to WeTransfer
+      id: wetransfer
+      if: steps.organize.outputs.status == 'success' && env.UPLOAD_WETRANSFER == 'true' && !cancelled()
+      run: |
+        curl -fsSL git.io/file-transfer | sh
+        ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
+        echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
+        echo "::set-output name=url::$(cat wetransfer.log | grep https | cut -f3 -d" ")"
+
+    - name: Generate release tag
+      id: tag
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      run: |
+        echo "::set-output name=release_tag::${{ steps.organize.outputs.bdate }}"
+        touch release.txt
+        [ $UPLOAD_COWTRANSFER = true ] && echo "🔗 [Cowtransfer](${{ steps.cowtransfer.outputs.url }})" >> release.txt
+        [ $UPLOAD_WETRANSFER = true ] && echo "🔗 [WeTransfer](${{ steps.wetransfer.outputs.url }})" >> release.txt
+        echo "::set-output name=status::success"
+
+    - name: Upload firmware to release
+      uses: softprops/action-gh-release@v1
+      if: steps.tag.outputs.status == 'success' && !cancelled()
+      env:
+        GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body_path: release.txt
+        files: ${{ env.FIRMWARE }}
+
+    - name: Delete workflow runs
+      uses: GitRML/delete-workflow-runs@main
+      with:
+        retain_days: 1
+        keep_minimum_runs: 3
+
+    - name: Remove old Releases
+      uses: dev-drprasad/delete-older-releases@v0.1.0
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      with:
+        keep_latest: 10
+        delete_tags: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
