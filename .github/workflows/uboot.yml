@@ -93,10 +93,6 @@ jobs:
         md5sum uboot_dir/u-boot.imx > uboot_dir/u-boot.imx.md5
         tar -cjvf u-boot-${{ steps.compile.outputs.bdate }}.tar.bz2 uboot_dir
         rm uboot_dir -rf
-        export PATH=$PATH:/opt/toolchains/$TOOLS_NAME/bin
-        export ARCH=arm
-        export CROSS_COMPILE=arm-linux-gnueabihf-
-        make clean && make distclean
         echo "FILE_DATE=${{ steps.compile.outputs.bdate }}" >> $GITHUB_ENV
         echo "FIRMWARE=u-boot-${{ steps.compile.outputs.bdate }}.tar.bz2" >> $GITHUB_ENV
         echo "::set-output name=status::success"
