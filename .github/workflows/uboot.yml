@@ -1,10 +1,7 @@
 name: u-boot CI
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+  workflow_dispatch:
 
 env:
   TZ: Asia/Shanghai

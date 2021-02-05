@@ -197,4 +197,12 @@ config PIC32_ETH
 	  This driver implements 10/100 Mbps Ethernet and MAC layer for
 	  Microchip PIC32 microcontrollers.
 
+config GSC32_ETH
+	bool "Godson GSC32 Ethernet Support"
+	depends on DM_ETH && MACH_GSC32
+	select PHYLIB
+	help
+	  This driver implements 10/100 Mbps Ethernet and MAC layer for
+	  Godson GSC32 microcontrollers.
+
 endif # NETDEVICES

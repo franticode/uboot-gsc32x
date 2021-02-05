@@ -1,0 +1,6 @@
+EVB_GSC32AX BOARD
+M:	Purna Chandra Mandal <purna.mandal@microchip.com>
+S:	Maintained
+F:	board/godson/evb_gsc32ax/
+F:	include/configs/evb_gsc32ax.h
+F:	configs/evb_gsc32ax_defconfig

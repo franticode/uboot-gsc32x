@@ -1,0 +1,53 @@
+menu "Godson GSC32 platforms"
+	depends on MACH_GSC32
+
+config SYS_SOC
+	default "gsc329x" if SOC_GSC329X
+	default "gsc32ax" if SOC_GSC32AX
+
+choice
+	prompt "GSC32 SoC select"
+
+config SOC_GSC329X
+	bool "Godson GSC329X family"
+	select SUPPORTS_LITTLE_ENDIAN
+	select SUPPORTS_CPU_MIPS32_R1
+	select SUPPORTS_CPU_MIPS32_R2
+	select MIPS_L1_CACHE_SHIFT_4
+	select SYS_MIPS_CACHE_INIT_RAM_LOAD
+	help
+	  This supports Godson GSC329X family of microcontrollers.
+
+config SOC_GSC32AX
+	bool "Godson GSC32AX family"
+	select SUPPORTS_LITTLE_ENDIAN
+	select SUPPORTS_CPU_MIPS32_R1
+	select SUPPORTS_CPU_MIPS32_R2
+	select MIPS_L1_CACHE_SHIFT_4
+	select SYS_MIPS_CACHE_INIT_RAM_LOAD
+	help
+	  This supports Godson GSC32AX family of microcontrollers.
+
+endchoice
+
+choice
+	prompt "Board select"
+
+config TARGET_EVB_GSC329X
+	bool "Godson GSC329X Starter Kit"
+	depends on SOC_GSC329X
+	help
+	  This supports Godson GSC329X Starter Kit.
+
+config TARGET_EVB_GSC32AX
+	bool "Godson GSC32AX Starter Kit"
+	depends on SOC_GSC32AX
+	help
+	  This supports Godson GSC32AX Starter Kit.
+
+endchoice
+
+source "board/godson/evb_gsc329x/Kconfig"
+source "board/godson/evb_gsc32ax/Kconfig"
+
+endmenu

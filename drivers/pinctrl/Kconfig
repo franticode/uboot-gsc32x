@@ -166,6 +166,16 @@ config PIC32_PINCTRL
 	  by a device tree node which contains both GPIO defintion and pin control
 	  functions.
 
+config GSC32_PINCTRL
+	bool "Godson GSC32 pin-control and pin-mux driver"
+	depends on DM && MACH_GSC32
+	default y
+	help
+	  Supports individual pin selection and configuration for each remappable
+	  peripheral available on Godson GSC32 SoCs. This driver is controlled
+	  by a device tree node which contains both GPIO defintion and pin control
+	  functions.
+
 endif
 
 source "drivers/pinctrl/meson/Kconfig"

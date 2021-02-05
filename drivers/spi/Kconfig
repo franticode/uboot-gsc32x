@@ -83,6 +83,14 @@ config PIC32_SPI
 	  to access the SPI NOR flash, MMC-over-SPI on platforms based on
 	  Microchip PIC32 family devices.
 
+config GSC32_SPI
+	bool "Godson GSC32 SPI driver"
+	depends on MACH_GSC32
+	help
+	  Enable the Godson GSC32 SPI driver. This driver can be used
+	  to access the SPI NOR flash, MMC-over-SPI on platforms based on
+	  Godson GSC32 family devices.
+
 config ROCKCHIP_SPI
 	bool "Rockchip SPI driver"
 	help

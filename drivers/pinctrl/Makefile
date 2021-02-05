@@ -13,5 +13,6 @@ obj-$(CONFIG_PINCTRL_SANDBOX)	+= pinctrl-sandbox.o
 
 obj-$(CONFIG_PINCTRL_UNIPHIER)	+= uniphier/
 obj-$(CONFIG_PIC32_PINCTRL)	+= pinctrl_pic32.o
+obj-$(CONFIG_GSC32_PINCTRL)	+= pinctrl_gsc32.o
 obj-$(CONFIG_PINCTRL_EXYNOS)	+= exynos/
 obj-$(CONFIG_PINCTRL_MESON)	+= meson/

@@ -1,0 +1,16 @@
+
+if TARGET_EVB_GSC329X
+
+config SYS_VENDOR
+	default "godson"
+
+config SYS_BOARD
+	default "evb_gsc329x"
+
+config SYS_CONFIG_NAME
+	default "evb_gsc329x"
+
+config SYS_TEXT_BASE
+	default 0x9d004000
+
+endif

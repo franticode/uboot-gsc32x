@@ -1,0 +1,67 @@
+/*
+ * Copyright (C) 2015 Purna Chandra Mandal, purna.mandal@godson.com
+ *
+ * SPDX-License-Identifier:	GPL-2.0+
+ */
+
+/dts-v1/;
+
+#include "gsc32xx.dtsi"
+
+/ {
+	model = "Godson GSC32X";
+	compatible = "godson,gsc32x", "godson,gsc329x";
+
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	aliases {
+		console = &uart2;
+		serial0 = &uart2;
+	};
+
+	memory {
+		device_type = "memory";
+		reg = <0x0 0x20000000>;
+	};
+
+	chosen {
+		stdout-path = "serial0:115200n8";
+	};
+};
+
+&clock {
+	godson,refo2-frequency = <50000000>;
+	godson,refo4-frequency = <25000000>;
+	godson,refo5-frequency = <40000000>;
+	status = "okay";
+	u-boot,dm-pre-reloc;
+};
+
+&pinctrl {
+	status = "okay";
+	u-boot,dm-pre-reloc;
+};
+
+&uart2 {
+	status = "okay";
+	u-boot,dm-pre-reloc;
+};
+
+&sdhci {
+	status = "okay";
+};
+
+&ethernet {
+	reset-gpios = <&gpioJ 15 0>;
+	status = "okay";
+	phy-mode = "rmii";
+	phy-handle = <&ethernet_phy>;
+	ethernet_phy: lan8740_phy@0 {
+		reg = <0>;
+	};
+};
+
+&usb {
+	status = "okay";
+};

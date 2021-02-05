@@ -151,6 +151,13 @@ config PIC32_GPIO
 	help
 	  Say yes here to support Microchip PIC32 GPIOs.
 
+config GSC32_GPIO
+	bool "Godson GSC32 GPIO driver"
+	depends on DM_GPIO && MACH_GSC32
+	default y
+	help
+	  Say yes here to support Godson GSC32 GPIOs.
+
 config MVEBU_GPIO
 	bool "Marvell MVEBU GPIO driver"
 	depends on DM_GPIO && ARCH_MVEBU

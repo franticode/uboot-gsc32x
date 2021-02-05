@@ -186,6 +186,14 @@ config DEBUG_UART_PIC32
 	  will need to provide parameters to make this work. The driver will
 	  be available until the real driver model serial is running.
 
+config DEBUG_UART_GSC32
+	bool "Godson GSC32"
+	depends on GSC32_SERIAL
+	help
+	  Select this to enable a debug UART using the serial_gsc32 driver. You
+	  will need to provide parameters to make this work. The driver will
+	  be available until the real driver model serial is running.
+
 config DEBUG_UART_UNIPHIER
 	bool "UniPhier on-chip UART"
 	depends on ARCH_UNIPHIER
@@ -301,6 +309,13 @@ config PIC32_SERIAL
 	default y
 	help
 	  Support for the UART found on Microchip PIC32 SoC's.
+
+config GSC32_SERIAL
+	bool "Support for Godson GSC32 on-chip UART"
+	depends on DM_SERIAL && MACH_GSC32
+	default y
+	help
+	  Support for the UART found on Godson GSC32 SoC's.
 
 config SYS_NS16550
 	bool "NS16550 UART or compatible"

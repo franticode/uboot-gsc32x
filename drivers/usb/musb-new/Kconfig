@@ -23,6 +23,13 @@ config USB_MUSB_PIC32
 	  Say y to enable PIC32 USB DRC controller support
 	  if it is available on your Microchip PIC32 platform.
 
+config USB_MUSB_GSC32
+	bool "Enable Godson GSC32 DRC USB controller"
+	depends on DM_USB && MACH_GSC32
+	help
+	  Say y to enable GSC32 USB DRC controller support
+	  if it is available on your Godson GSC32 platform.
+
 config USB_MUSB_SUNXI
 	bool "Enable sunxi OTG / DRC USB controller"
 	depends on ARCH_SUNXI

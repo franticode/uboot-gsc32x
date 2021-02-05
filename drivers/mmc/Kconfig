@@ -65,6 +65,12 @@ config PIC32_SDHCI
 	help
 	  Support for Microchip PIC32 SDHCI controller.
 
+config GSC32_SDHCI
+	bool "Godson GSC32 on-chip SDHCI support"
+	depends on DM_MMC && MACH_GSC32
+	help
+	  Support for Godson GSC32 SDHCI controller.
+
 config ZYNQ_SDHCI
 	bool "Arasan SDHCI controller support"
 	depends on DM_MMC && OF_CONTROL

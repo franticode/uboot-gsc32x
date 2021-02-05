@@ -35,6 +35,13 @@ config FLASH_PIC32
 	  This enables access to Microchip PIC32 internal non-CFI flash
 	  chips through PIC32 Non-Volatile-Memory Controller.
 
+config FLASH_GSC32
+	bool "Godson GSC32 Flash driver"
+	depends on MACH_GSC32 && MTD
+	help
+	  This enables access to Godson GSC32 internal non-CFI flash
+	  chips through GSC32 Non-Volatile-Memory Controller.
+
 endmenu
 
 source "drivers/mtd/nand/Kconfig"

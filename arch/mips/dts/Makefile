@@ -8,6 +8,9 @@ dtb-$(CONFIG_TARGET_MALTA) += mti,malta.dtb
 dtb-$(CONFIG_TARGET_PIC32MZDASK) += pic32mzda_sk.dtb
 dtb-$(CONFIG_BOARD_TPLINK_WDR4300) += tplink_wdr4300.dtb
 
+dtb-$(CONFIG_TARGET_EVB_GSC329X) += evb_gsc329x.dtb
+dtb-$(CONFIG_TARGET_EVB_GSC32AX) += evb_gsc32ax.dtb
+
 targets += $(dtb-y)
 
 # Add any required device tree compiler flags here
